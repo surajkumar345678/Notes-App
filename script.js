@@ -1,44 +1,67 @@
+// script.js
+
 const notesContainer = document.querySelector(".notes-container");
 const createBtn = document.querySelector(".btn");
-let notes = document.querySelectorAll(".input-box");
 
 function showNotes() {
-    notesContainer.innerHTML=localStorage.getItem("notes");
+    const savedNotes = localStorage.getItem("notes");
+    notesContainer.innerHTML = savedNotes ? savedNotes : '';
 }
-
-showNotes();
 
 function updateStorage() {
     localStorage.setItem("notes", notesContainer.innerHTML);
 }
 
-createBtn.addEventListener("click", () => {
-  let inputBox = document.createElement("p");
-  let img = document.createElement("img");
-  inputBox.className="input-box";
-  inputBox.setAttribute("contenteditable", true);
-  img.src="delete.png";
-  notesContainer.appendChild(inputBox).appendChild(img);
-})
+function createNote() {
+    const note = document.createElement("p");
+    note.className = "input-box";
+    note.setAttribute("contenteditable", true);
 
-notesContainer.addEventListener ("click",function(e) {
-    if (e.target.tagName==="IMG") {
-        e.target.parentElement.remove();
-        updateStorage();
+    const label = document.createElement("label");
+    label.innerText = "Type your note here";
+    note.appendChild(label);
+
+    const deleteIcon = document.createElement("img");
+    deleteIcon.src = "images/delete.png";
+    deleteIcon.addEventListener("click", deleteNote);
+
+    note.addEventListener("input", hidePlaceholder); // Add input event listener
+
+    notesContainer.appendChild(note).appendChild(deleteIcon);
+
+    updateStorage();
+}
+
+function deleteNote() {
+    this.parentElement.remove();
+    updateStorage();
+}
+
+function handleNoteEdit() {
+    updateStorage();
+}
+
+function hidePlaceholder() {
+    const label = this.querySelector("label");
+    if (label) {
+        label.style.display = "none";
     }
-    else if (e.target.tagName === "P") {
-        notes = document.querySelectorAll(".input-box");
-        notes.forEach(nt => {
-            nt.onkeyup=function(){
-                updateStorage();
-            }
-        })
+}
+
+createBtn.addEventListener("click", createNote);
+notesContainer.addEventListener("click", function (e) {
+    if (e.target.tagName === "IMG") {
+        deleteNote.call(e.target);
+    } else if (e.target.tagName === "P") {
+        handleNoteEdit();
     }
-})
+});
 
 document.addEventListener("keydown", event => {
     if (event.key === "Enter") {
         document.execCommand("insertLineBreak");
         event.preventDefault();
     }
-})
+});
+
+showNotes();
